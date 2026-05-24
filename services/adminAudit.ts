@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { DomainEvents, APP_EVENTS } from './observer';
 
 export type AdminActionType =
   | 'payment_approved'
@@ -37,11 +38,31 @@ export const logAdminAction = async (params: {
       target_payment_id: params.targetPaymentId || null,
       detail: params.detail || null,
     });
+
     if (error) console.error('Error logging admin action:', error);
   } catch (err) {
     console.error('Unexpected error logging admin action:', err);
   }
 };
+
+// Suscribimos la auditoría a los eventos globales
+DomainEvents.subscribe(APP_EVENTS.PAYMENT_APPROVED, (data) => {
+  logAdminAction({
+    action: 'payment_approved',
+    adminId: data.adminId,
+    targetUserId: data.userId,
+    detail: `Pago de $${data.amount} aprobado automáticamente por Observer`
+  });
+});
+
+DomainEvents.subscribe(APP_EVENTS.USER_ROLE_CHANGED, (data) => {
+  logAdminAction({
+    action: 'user_role_changed',
+    adminId: data.adminId,
+    targetUserId: data.userId,
+    detail: `Rol cambiado a [${data.role}] por el sistema`
+  });
+});
 
 export const fetchRecentAuditLog = async (limit = 50): Promise<AdminAuditEntry[]> => {
   const { data, error } = await supabase
