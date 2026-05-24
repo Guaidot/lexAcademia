@@ -1,5 +1,5 @@
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@^2.39.7';
+import { createClient } from '@supabase/supabase-js';
 
 // Credenciales proporcionadas por el usuario
 const supabaseUrl = 'https://tcrlgheeglwxdmslvxlc.supabase.co';
@@ -22,7 +22,7 @@ export const signUpUser = async (email: string, password: string, name: string) 
 
 export const signInUser = async (email: string, password: string) => {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: email.toLowerCase().trim(),
     password,
   });
   return { data, error };
@@ -36,9 +36,7 @@ export const resetPassword = async (email: string) => {
 };
 
 export const getRecoverySessionFromUrl = async () => {
-  const { data, error } = await supabase.auth.getSessionFromUrl({
-    storeSession: true,
-  });
+  const { data, error } = await supabase.auth.getSession();
   return { data, error };
 };
 
